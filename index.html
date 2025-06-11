@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enhanced Typing Speed Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #e0f7fa;
+      --container-bg: #ffffff;
+      --text-color: #333;
+      --accent: #00796b;
+      --accent-light: #b2dfdb;
+      --correct-color: #2e7d32;
+      --incorrect-color: #c62828;
+      --stat-bg: #f1f8e9;
+      --btn-bg: #004d40;
+      --btn-hover: #00695c;
+    }
+    [data-theme="dark"] {
+      --bg-color: #263238;
+      --container-bg: #37474f;
+      --text-color: #eceff1;
+      --accent: #80cbc4;
+      --accent-light: #4f5b62;
+      --correct-color: #a5d6a7;
+      --incorrect-color: #ef9a9a;
+      --stat-bg: #455a64;
+      --btn-bg: #004d40;
+      --btn-hover: #00695c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Fira Code', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    #container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--container-bg);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transform: scale(0.98);
+      animation: popIn 0.4s forwards;
+    }
+    @keyframes popIn { to { transform: scale(1); } }
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 { font-size: 1.75rem; }
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+    .controls button,
+    .controls select {
+      background: var(--btn-bg);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .controls select { width: 80px; }
+    .controls button:hover,
+    .controls select:hover { background: var(--btn-hover); transform: translateY(-2px); }
+    #custom-text,
+    #load-custom {
+      width: calc(100% - 40px);
+      margin: 10px 20px;
+      font-size: 1rem;
+    }
+    #custom-text {
+      height: 80px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--accent-light);
+      background: var(--accent-light);
+      color: var(--text-color);
+      display: none;
+      resize: vertical;
+    }
+    #load-custom {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #load-custom:hover { background: var(--btn-hover); }
+    #text-display {
+      padding: 25px;
+      min-height: 220px;
+      line-height: 1.6;
+      font-size: 1.2rem;
+      border-bottom: 1px solid var(--accent-light);
+      overflow-y: auto;
+      background: var(--accent-light);
+    }
+    .char.correct { color: var(--correct-color); }
+    .char.incorrect { color: var(--incorrect-color); }
+    .char.current { border-left: 2px solid var(--text-color); animation: blink 1s step-end infinite; }
+    @keyframes blink { from { border-color: transparent } to { border-color: var(--text-color) } }
+    #input {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      border: 2px solid var(--accent-light);
+      border-radius: 0 0 8px 8px;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+    #input:focus { border-color: var(--accent); }
+    #input:disabled { background: #ddd; }
+    #stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+      background: var(--stat-bg);
+    }
+    .stat-box {
+      background: var(--container-bg);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+      flex: 1;
+      margin: 0 10px;
+    }
+    .stat-box:first-child { margin-left: 0; }
+    .stat-box:last-child { margin-right: 0; }
+    .stat-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+      color: var(--accent);
+    }
+    .stat-box span { font-size: 1.2rem; font-weight: 600; }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+      background: var(--accent-light);
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div id="container">
+    <header>
+      <h1>Typing Speed Test</h1>
+      <div class="controls">
+        <select id="duration">
+          <option value="30">30s</option>
+          <option value="60" selected>60s</option>
+          <option value="120">120s</option>
+        </select>
+        <button id="theme-toggle">Dark Mode</button>
+        <button id="custom-btn">Custom Text</button>
+        <button id="restart">Start</button>
+      </div>
+    </header>
+    <textarea id="custom-text" placeholder="Enter your custom paragraph here..."></textarea>
+    <button id="load-custom">Load Custom Text</button>
+    <div id="text-display"></div>
+    <textarea id="input" placeholder="Start typing here..." disabled></textarea>
+    <div id="stats">
+      <div class="stat-box"><h2>Time</h2><span id="timer">0</span>s</div>
+      <div class="stat-box"><h2>WPM</h2><span id="wpm">0</span></div>
+      <div class="stat-box"><h2>Accuracy</h2><span id="accuracy">100</span>%</div>
+    </div>
+    <footer>Built with ❤️ by Shubham, sumit, vishvajeet and vishal</footer>
+  </div>
+
+  <script>
+  (function(){
+    let PARAGRAPHS = [
+      "Typing is a fundamental skill that improves efficiency and productivity—practice daily to master it.",
+      "Consistency, accuracy, and speed are key metrics in typing tests; focus on minimizing errors while maintaining pace.",
+      "Challenge yourself with diverse texts, including punctuation, numbers, and special characters, to strengthen your typing prowess.",
+      "Stay relaxed, sit with proper posture, and keep your fingers on the home row to type comfortably for longer sessions.",
+      "Monitor your progress over time; celebrate improvements and identify areas that need targeted practice."
+    ];
+
+    const display       = document.getElementById('text-display');
+    const input         = document.getElementById('input');
+    const timerEl       = document.getElementById('timer');
+    const wpmEl         = document.getElementById('wpm');
+    const accEl         = document.getElementById('accuracy');
+    const restartBtn    = document.getElementById('restart');
+    const durationSelect= document.getElementById('duration');
+    const themeBtn      = document.getElementById('theme-toggle');
+    const customBtn     = document.getElementById('custom-btn');
+    const customText    = document.getElementById('custom-text');
+    const loadCustomBtn = document.getElementById('load-custom');
+
+    let chars = [], totalTime, timeLeft, timerId, started, correctChars, totalTyped;
+
+    function pickParagraph() {
+      const txt = PARAGRAPHS[Math.floor(Math.random() * PARAGRAPHS.length)];
+      display.innerHTML = '';
+      chars = txt.split('').map(c => {
+        const span = document.createElement('span');
+        span.textContent = c;
+        span.classList.add('char');
+        display.appendChild(span);
+        return span;
+      });
+      chars[0]?.classList.add('current');
+    }
+
+    function startTest() {
+      resetStats();
+      totalTime = parseInt(durationSelect.value, 10);
+      timeLeft  = totalTime;
+      timerEl.textContent = timeLeft;
+      restartBtn.textContent = 'Reset';
+      input.disabled = false;
+      input.value = '';
+      input.focus();
+      clearInterval(timerId);
+      timerId = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) endTest();
+      }, 1000);
+    }
+
+    function endTest() {
+      clearInterval(timerId);
+      input.disabled = true;
+      restartBtn.textContent = 'Start';
+    }
+
+    function resetStats() {
+      started = false;
+      correctChars = 0;
+      totalTyped   = 0;
+      wpmEl.textContent = 0;
+      accEl.textContent = 100;
+      pickParagraph();
+    }
+
+    function updateStats() {
+      const elapsed = (totalTime - timeLeft) / 60;
+      const wpm     = Math.round((correctChars / 5) / (elapsed || 1/60));
+      const accuracy= Math.round((correctChars / totalTyped) * 100) || 0;
+      wpmEl.textContent = wpm;
+      accEl.textContent = accuracy;
+    }
+
+    input.addEventListener('input', () => {
+      if (!started) started = true;
+      const value = input.value;
+      totalTyped = value.length;
+      correctChars = 0;
+      chars.forEach((span, idx) => {
+        span.classList.remove('correct','incorrect','current');
+        const typed = value[idx];
+        if (typed == null) return;
+        if (typed === span.textContent) { span.classList.add('correct'); correctChars++; }
+        else span.classList.add('incorrect');
+      });
+      chars[value.length]?.classList.add('current');
+      updateStats();
+      if (value.length === chars.length) endTest();
+    });
+
+    restartBtn.addEventListener('click', startTest);
+    durationSelect.addEventListener('change', resetStats);
+
+    themeBtn.addEventListener('click', () => {
+      const root = document.body;
+      const isDark= root.getAttribute('data-theme') === 'dark';
+      root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+    });
+
+    customBtn.addEventListener('click', () => {
+      const visible = customText.style.display === 'block';
+      customText.style.display = visible ? 'none' : 'block';
+      loadCustomBtn.style.display = visible ? 'none' : 'block';
+    });
+
+    loadCustomBtn.addEventListener('click', () => {
+      const text = customText.value.trim();
+      if (!text) return alert('Please enter some text.');
+      PARAGRAPHS.unshift(text);
+      customText.value = '';
+      customText.style.display = 'none';
+      loadCustomBtn.style.display = 'none';
+      alert('Custom text loaded! Starting test...');
+      startTest();
+    });
+
+    // initialize
+    resetStats();
+  })();
+  </script>
+</body>
+</html>
